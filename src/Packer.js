@@ -1,6 +1,11 @@
-// @flow
+//
+// FIXME: add flow
+
 import moment from 'moment';
 const offset = 100;
+
+const DATE_FORMAT_TIME = 'YYYY-MM-DD HH:mm:ss';
+const DATE_FORMAT = 'YYYY-MM-DD';
 
 function buildEvent(column, left, width, dayStart) {
   const startTime = moment(column.start);
@@ -25,12 +30,12 @@ function collision(a, b) {
 }
 
 function expand(ev, column, columns) {
-  var colSpan = 1;
+  let colSpan = 1;
 
-  for (var i = column + 1; i < columns.length; i++) {
-    var col = columns[i];
-    for (var j = 0; j < col.length; j++) {
-      var ev1 = col[j];
+  for (let i = column + 1; i < columns.length; i++) {
+    let col = columns[i];
+    for (let j = 0; j < col.length; j++) {
+      let ev1 = col[j];
       if (collision(ev, ev1)) {
         return colSpan;
       }
@@ -42,14 +47,16 @@ function expand(ev, column, columns) {
 }
 
 function pack(columns, width, calculatedEvents, dayStart) {
-  var colLength = columns.length;
+  let colLength = columns.length;
 
-  for (var i = 0; i < colLength; i++) {
-    var col = columns[i];
-    for (var j = 0; j < col.length; j++) {
-      var colSpan = expand(col[j], i, columns);
-      var L = (i / colLength) * width;
-      var W = (width * colSpan) / colLength - 10;
+  for (let i = 0; i < colLength; i++) {
+    let col = columns[i];
+    for (let j = 0; j < col.length; j++) {
+      let colSpan = expand(col[j], i, columns);
+      // let L = i / colLength * width;
+      let L = (i / colLength) * 46;
+      // let W = width * colSpan / colLength - 10
+      let W = width - 16;
 
       calculatedEvents.push(buildEvent(col[j], L, W, dayStart));
     }
@@ -82,9 +89,9 @@ function populateEvents(events, screenWidth, dayStart) {
       lastEnd = null;
     }
 
-    var placed = false;
-    for (var i = 0; i < columns.length; i++) {
-      var col = columns[i];
+    let placed = false;
+    for (let i = 0; i < columns.length; i++) {
+      let col = columns[i];
       if (!collision(col[col.length - 1], ev)) {
         col.push(ev);
         placed = true;
@@ -107,4 +114,40 @@ function populateEvents(events, screenWidth, dayStart) {
   return calculatedEvents;
 }
 
-export default populateEvents;
+const populateMultipleEvents = (
+  events,
+  screenWidth,
+  dayStart,
+  daysShownOnScreen,
+  dates
+) => {
+  let preparedEvents = [];
+  const gridEvents = {};
+
+  dates.map(date => (gridEvents[date.format(DATE_FORMAT)] = []));
+
+  events.forEach(item => {
+    const key = moment(item.start, DATE_FORMAT_TIME).format(DATE_FORMAT);
+    if (gridEvents[key]) {
+      gridEvents[key].push(item);
+    }
+  });
+
+  let gridEventsPopulated = Object.keys(gridEvents).map((key, index) => {
+    return populateEvents(gridEvents[key], screenWidth, dayStart);
+  });
+
+  gridEventsPopulated = gridEventsPopulated.map((col, index) => {
+    col.map(event => {
+      preparedEvents.push({
+        ...event,
+        width: event.width / daysShownOnScreen,
+        left: (event.width / daysShownOnScreen) * index + event.left,
+      });
+    });
+  });
+
+  return preparedEvents;
+};
+
+export default populateMultipleEvents;

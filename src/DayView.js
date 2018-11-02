@@ -1,11 +1,12 @@
-// @flow
+//
+// FIXME: add flow
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import populateEvents from './Packer';
 import React from 'react';
 import moment from 'moment';
 import _ from 'lodash';
 
-const LEFT_MARGIN = 60 - 1;
+const LEFT_MARGIN = 50 - 1;
 // const RIGHT_MARGIN = 10
 const CALENDER_HEIGHT = 2400;
 // const EVENT_TITLE_HEIGHT = 15
@@ -22,7 +23,13 @@ export default class DayView extends React.PureComponent {
     super(props);
     this.calendarHeight = (props.end - props.start) * 100;
     const width = props.width - LEFT_MARGIN;
-    const packedEvents = populateEvents(props.events, width, props.start);
+    const packedEvents = populateEvents(
+      props.events,
+      width,
+      props.start,
+      props.daysShownOnScreen,
+      props.dates
+    );
     let initPosition =
       _.min(_.map(packedEvents, 'top')) -
       this.calendarHeight / (props.end - props.start);
@@ -36,7 +43,13 @@ export default class DayView extends React.PureComponent {
   componentWillReceiveProps(nextProps) {
     const width = nextProps.width - LEFT_MARGIN;
     this.setState({
-      packedEvents: populateEvents(nextProps.events, width, nextProps.start),
+      packedEvents: populateEvents(
+        nextProps.events,
+        width,
+        nextProps.start,
+        nextProps.daysShownOnScreen,
+        nextProps.dates
+      ),
     });
   }
 
@@ -87,13 +100,13 @@ export default class DayView extends React.PureComponent {
       if (i === start) {
         timeText = ``;
       } else if (i < 12) {
-        timeText = !format24h ? `${i} AM` : i;
+        timeText = !format24h ? `${i} AM` : `${i}:00`;
       } else if (i === 12) {
-        timeText = !format24h ? `${i} PM` : i;
+        timeText = !format24h ? `${i} PM` : `${i}:00`;
       } else if (i === 24) {
-        timeText = !format24h ? `12 AM` : 0;
+        timeText = !format24h ? `12 AM` : '00:00';
       } else {
-        timeText = !format24h ? `${i - 12} PM` : i;
+        timeText = !format24h ? `${i - 12} PM` : `${i}:00`;
       }
       const { width, styles } = this.props;
       return [
@@ -135,7 +148,7 @@ export default class DayView extends React.PureComponent {
   }
 
   _renderEvents() {
-    const { styles } = this.props;
+    const { styles, renderEvent } = this.props;
     const { packedEvents } = this.state;
     let events = packedEvents.map((event, i) => {
       const style = {
@@ -156,13 +169,12 @@ export default class DayView extends React.PureComponent {
       return (
         <TouchableOpacity
           activeOpacity={0.5}
-          onPress={() =>
-            this._onEventTapped(this.props.events[event.index])
-          }
-          key={i} style={[styles.event, style, event.color && eventColor]}
+          onPress={() => this._onEventTapped(this.props.events[event.index])}
+          key={i}
+          style={[styles.event, style, event.color && eventColor]}
         >
-          {this.props.renderEvent ? (
-            this.props.renderEvent(event)
+          {renderEvent ? (
+            renderEvent(event)
           ) : (
             <View>
               <Text numberOfLines={1} style={styles.eventTitle}>
@@ -182,7 +194,7 @@ export default class DayView extends React.PureComponent {
                   {moment(event.end).format(formatTime)}
                 </Text>
               ) : null}
-              </View>
+            </View>
           )}
         </TouchableOpacity>
       );

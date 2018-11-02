@@ -25,11 +25,11 @@ export default function styleConstructor(theme = {}, calendarHeight) {
       backgroundColor: '#F5F5F6',
       flexDirection: 'row',
       justifyContent: 'space-between',
-      alignItems: 'stretch',
+      alignItems: 'center',
       ...theme.header,
     },
-    headerTextContainer: {
-      justifyContent: 'center',
+    leftMarginHeader: {
+      marginLeft: 0,
     },
     headerText: {
       fontSize: 16,
@@ -39,12 +39,6 @@ export default function styleConstructor(theme = {}, calendarHeight) {
       width: 15,
       height: 15,
       resizeMode: 'contain',
-    },
-    arrowButton: {
-      width: 50,
-      alignItems: 'center',
-      justifyContent: 'center',
-      ...theme.arrowButton,
     },
     event: {
       position: 'absolute',
@@ -105,6 +99,10 @@ export default function styleConstructor(theme = {}, calendarHeight) {
       fontFamily: 'Helvetica Neue',
       fontWeight: '500',
       ...theme.timeLabel,
+    },
+    containerTextHeader: {
+      flex: 1,
+      ...theme.containerTextHeader,
     },
   };
   return StyleSheet.create(style);
