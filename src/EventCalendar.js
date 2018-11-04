@@ -64,6 +64,35 @@ export default class EventCalendar extends React.Component {
     }
   }
 
+  componentDidUpdate(prevProps, prevState) {
+    // One possible fix...
+    if (prevProps.daysShownOnScreen !== this.props.daysShownOnScreen) {
+      let dates = [];
+      if (this.props.daysShownOnScreen === 7) {
+        dates = this._getWeekDays();
+      } else {
+        dates = this.populateDatesHeader(moment(this.props.initDate));
+      }
+
+      this.setState(() => ({ index: this.state.index, dates }));
+      this._goToDate(this.props.initDate);
+    }
+  }
+
+  _getWeekDays = (date): { [string]: Array<any> } => {
+    const begin = moment(date).isoWeekday(1);
+    begin.startOf('isoWeek');
+
+    const data = [];
+
+    for (let i = 0; i < 7; i++) {
+      data.push(begin.clone());
+      begin.add(1, 'd');
+    }
+
+    return data;
+  };
+
   static defaultProps = {
     size: 30,
     daysShownOnScreen: 1,
