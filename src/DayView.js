@@ -21,14 +21,15 @@ function range(from, to) {
 export default class DayView extends React.PureComponent {
   constructor(props) {
     super(props);
-    this.calendarHeight = (props.end - props.start) * 100;
+    this.calendarHeight = (props.end - props.start) * props.offset;
     const width = props.width - LEFT_MARGIN;
     const packedEvents = populateEvents(
       props.events,
       width,
       props.start,
       props.daysShownOnScreen,
-      props.dates
+      props.dates,
+      props.offset
     );
     let initPosition =
       _.min(_.map(packedEvents, 'top')) -
@@ -48,7 +49,8 @@ export default class DayView extends React.PureComponent {
         width,
         nextProps.start,
         nextProps.daysShownOnScreen,
-        nextProps.dates
+        nextProps.dates,
+        nextProps.offset
       ),
     });
   }
@@ -70,8 +72,7 @@ export default class DayView extends React.PureComponent {
   }
 
   _renderRedLine() {
-    const offset = 100;
-    const { format24h } = this.props;
+    const { format24h, offset } = this.props;
     const { width, styles } = this.props;
     const timeNowHour = moment().hour();
     const timeNowMin = moment().minutes();

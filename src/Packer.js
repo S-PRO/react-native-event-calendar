@@ -2,12 +2,11 @@
 // FIXME: add flow
 
 import moment from 'moment';
-const offset = 100;
 
 const DATE_FORMAT_TIME = 'YYYY-MM-DD HH:mm:ss';
 const DATE_FORMAT = 'YYYY-MM-DD';
 
-function buildEvent(column, left, width, dayStart) {
+function buildEvent(column, left, width, dayStart, offset) {
   const startTime = moment(column.start);
   const endTime = column.end
     ? moment(column.end)
@@ -46,7 +45,7 @@ function expand(ev, column, columns) {
   return colSpan;
 }
 
-function pack(columns, width, calculatedEvents, dayStart) {
+function pack(columns, width, calculatedEvents, dayStart, offset) {
   let colLength = columns.length;
 
   for (let i = 0; i < colLength; i++) {
@@ -58,12 +57,12 @@ function pack(columns, width, calculatedEvents, dayStart) {
       // let W = width * colSpan / colLength - 10
       let W = width - 16;
 
-      calculatedEvents.push(buildEvent(col[j], L, W, dayStart));
+      calculatedEvents.push(buildEvent(col[j], L, W, dayStart, offset));
     }
   }
 }
 
-function populateEvents(events, screenWidth, dayStart) {
+function populateEvents(events, screenWidth, dayStart, offset) {
   let lastEnd;
   let columns;
   let self = this;
@@ -84,7 +83,7 @@ function populateEvents(events, screenWidth, dayStart) {
 
   events.forEach(function(ev, index) {
     if (lastEnd !== null && ev.start >= lastEnd) {
-      pack(columns, screenWidth, calculatedEvents, dayStart);
+      pack(columns, screenWidth, calculatedEvents, dayStart, offset);
       columns = [];
       lastEnd = null;
     }
@@ -109,7 +108,7 @@ function populateEvents(events, screenWidth, dayStart) {
   });
 
   if (columns.length > 0) {
-    pack(columns, screenWidth, calculatedEvents, dayStart);
+    pack(columns, screenWidth, calculatedEvents, dayStart, offset);
   }
   return calculatedEvents;
 }
@@ -119,7 +118,8 @@ const populateMultipleEvents = (
   screenWidth,
   dayStart,
   daysShownOnScreen,
-  dates
+  dates,
+  offset,
 ) => {
   let preparedEvents = [];
   const gridEvents = {};
@@ -134,7 +134,7 @@ const populateMultipleEvents = (
   });
 
   let gridEventsPopulated = Object.keys(gridEvents).map((key, index) => {
-    return populateEvents(gridEvents[key], screenWidth, dayStart);
+    return populateEvents(gridEvents[key], screenWidth, dayStart, offset);
   });
 
   gridEventsPopulated = gridEventsPopulated.map((col, index) => {
