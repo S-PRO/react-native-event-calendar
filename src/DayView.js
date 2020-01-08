@@ -6,7 +6,7 @@ import React from 'react';
 import moment from 'moment';
 import _ from 'lodash';
 
-const LEFT_MARGIN = 50 - 1;
+const LEFT_MARGIN = 35 - 1;
 // const RIGHT_MARGIN = 10
 const CALENDER_HEIGHT = 2400;
 // const EVENT_TITLE_HEIGHT = 15
@@ -17,6 +17,33 @@ const TEXT_LINE_HEIGHT = 17;
 function range(from, to) {
   return Array.from(Array(to), (_, i) => from + i);
 }
+
+export const getHourTitle = (i: number) => {
+  const timeText = moment("00:00", "hh:mm").add(i, 'h');
+  return {
+    formatHour: timeText && timeText.format("hh"),
+    formatAmPm: timeText && timeText.format("a")
+  };
+};
+
+//type  _t_props = {|
+//   eventComponent: undefined
+//   dates: Array<Moment>,
+//   index: number,
+//   format24h: boolean,
+//   formatHeader: string,
+//   headerStyle: undefined
+//   renderEvent: ƒ renderEvent(event)
+//   eventTapped: ƒ eventTapped(event)
+//   events: Array<Object>,
+//   width: number,
+//   daysShownOnScreen: number,
+//   styles: Object,
+//   scrollToFirst: boolean,
+//   start: number,
+//   end: number,
+//   offset: number
+// |}
 
 export default class DayView extends React.PureComponent {
   constructor(props) {
@@ -41,19 +68,42 @@ export default class DayView extends React.PureComponent {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
-    const width = nextProps.width - LEFT_MARGIN;
-    this.setState({
-      packedEvents: populateEvents(
-        nextProps.events,
-        width,
-        nextProps.start,
-        nextProps.daysShownOnScreen,
-        nextProps.dates,
-        nextProps.offset
-      ),
-    });
+  componentDidUpdate(prev: _t_props) {
+    const { events, start, dates, offset, daysShownOnScreen } = prev;
+    const width = this.props.width - LEFT_MARGIN;
+    if (events !== this.props.events &&
+        prev.width !== width &&
+        start !== this.props.start &&
+        dates !== this.props.dates &&
+        offset !== this.props.offset &&
+        daysShownOnScreen !== this.props.daysShownOnScreen
+    ) {
+      this.setState({
+        packedEvents: populateEvents(
+          this.props.events,
+          width,
+          this.props.start,
+          this.props.daysShownOnScreen,
+          this.props.dates,
+          this.props.offset
+        ),
+      });
+    }
   }
+
+  // componentWillReceiveProps(nextProps) {
+  //   const width = nextProps.width - LEFT_MARGIN;
+  //   this.setState({
+  //     packedEvents: populateEvents(
+  //       nextProps.events,
+  //       width,
+  //       nextProps.start,
+  //       nextProps.daysShownOnScreen,
+  //       nextProps.dates,
+  //       nextProps.offset
+  //     ),
+  //   });
+  // }
 
   componentDidMount() {
     this.props.scrollToFirst && this.scrollToFirst();
@@ -97,26 +147,22 @@ export default class DayView extends React.PureComponent {
     const offset = this.calendarHeight / (end - start);
 
     return range(start, end + 1).map((i, index) => {
-      let timeText;
-      if (i === start) {
-        timeText = ``;
-      } else if (i < 12) {
-        timeText = !format24h ? `${i} AM` : `${i}:00`;
-      } else if (i === 12) {
-        timeText = !format24h ? `${i} PM` : `${i}:00`;
-      } else if (i === 24) {
-        timeText = !format24h ? `12 AM` : '00:00';
-      } else {
-        timeText = !format24h ? `${i - 12} PM` : `${i}:00`;
-      }
+      const timeText = getHourTitle(i);
+
       const { width, styles } = this.props;
       return [
         <Text
-          key={`timeLabel${i}`}
-          style={[styles.timeLabel, { top: offset * index - 6 }]}
-        >
-          {timeText}
-        </Text>,
+        key={`timeLabel${i}`}
+        style={[styles.timeLabel, { top: (offset * index) - 6 }]}
+      >
+        {i !== start ? timeText.formatHour : ""}
+      </Text>,
+      <Text
+        key={`timeLabelAm${i}`}
+        style={[styles.timeLabel, { top: (offset * index) + 6 }]}
+      >
+        {i !== start ? timeText.formatAmPm : ""}
+      </Text>,
         i === start ? null : (
           <View
             key={`line${i}`}

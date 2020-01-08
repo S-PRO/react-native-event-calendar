@@ -2,7 +2,7 @@
 import { StyleSheet } from 'react-native';
 
 // const eventPaddingLeft = 4
-const leftMargin = 50 - 1;
+const leftMargin = 35 - 1;
 
 export default function styleConstructor(theme = {}, calendarHeight) {
   let style = {
@@ -93,7 +93,7 @@ export default function styleConstructor(theme = {}, calendarHeight) {
     },
     timeLabel: {
       position: 'absolute',
-      left: 15,
+      left: 7,
       color: 'rgb(170,170,170)',
       fontSize: 10,
       fontFamily: 'Helvetica Neue',
