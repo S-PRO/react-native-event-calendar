@@ -58,36 +58,44 @@ export default class DayView extends React.PureComponent {
       props.dates,
       props.offset
     );
-    let initPosition =
-      _.min(_.map(packedEvents, 'top')) -
-      this.calendarHeight / (props.end - props.start);
-    initPosition = initPosition < 0 ? 0 : initPosition;
+   
     this.state = {
-      _scrollY: initPosition,
+      _scrollY: this._getFirstEventPosition(packedEvents),
       packedEvents,
     };
+  }
+
+  _getFirstEventPosition = (packedEvents) => {
+    // get offset for first event 
+    const offset = this.calendarHeight / (this.props.end - this.props.start);
+    const initPosition =
+    _.min(_.map(packedEvents, 'top')) - offset;
+
+    return initPosition < 0 ? 0 : initPosition;
   }
 
   componentDidUpdate(prev: _t_props) {
     const { events, start, dates, offset, daysShownOnScreen } = prev;
     const width = this.props.width - LEFT_MARGIN;
-    if (events !== this.props.events &&
-        prev.width !== width &&
-        start !== this.props.start &&
-        dates !== this.props.dates &&
-        offset !== this.props.offset &&
-        daysShownOnScreen !== this.props.daysShownOnScreen
+    if (events?.length !== this.props.events?.length &&
+        dates !== this.props.dates
     ) {
-      this.setState({
-        packedEvents: populateEvents(
-          this.props.events,
-          width,
-          this.props.start,
-          this.props.daysShownOnScreen,
-          this.props.dates,
-          this.props.offset
-        ),
+      const packedEvents = populateEvents(
+        this.props.events,
+        width,
+        this.props.start,
+        this.props.daysShownOnScreen,
+        this.props.dates,
+        this.props.offset
+      );
+
+      this.setState(() => ({
+        _scrollY: this._getFirstEventPosition(packedEvents),
+        packedEvents: packedEvents,
+      }), () => {
+        this.props.scrollToFirst && this.scrollToFirst();
       });
+
     }
   }
 
