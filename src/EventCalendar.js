@@ -73,8 +73,15 @@ export default class EventCalendar extends React.Component {
       } else {
         dates = this.populateDatesHeader(moment(this.props.initDate));
       }
-
       this.setState(() => ({ index: this.state.index, dates }));
+      this._goToDate(this.props.initDate);
+    }
+    if (this.props.initDate && (prevProps.initDate !== this.props.initDate)) {
+
+      this.setState(() => ({
+        index: this.props.size,
+        dates: this.populateDatesHeader(moment(this.props.initDate))
+      }));
       this._goToDate(this.props.initDate);
     }
   }
