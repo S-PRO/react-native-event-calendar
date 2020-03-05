@@ -1,6 +1,12 @@
-//
-// FIXME: add flow
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+// @flow
+
+import {
+  StyleSheet,
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity
+} from 'react-native';
 import populateEvents from './Packer';
 import React from 'react';
 import moment from 'moment';
@@ -14,6 +20,27 @@ const TEXT_LINE_HEIGHT = 17;
 // const MIN_EVENT_TITLE_WIDTH = 20
 // const EVENT_PADDING_LEFT = 4
 
+const CALENDAR_HEIGHT_CARD = 100;
+const MINIMUM_THRESHOLD = 20;
+
+const componentStyles = StyleSheet.create({
+  positionCreateEvent: {
+    height: CALENDAR_HEIGHT_CARD - 10,
+    borderWidth: 3,
+    borderStyle: "solid",
+    borderColor: "#ccffff",
+    borderRadius: 7,
+    left: LEFT_MARGIN,
+    backgroundColor: "#00CDCE",
+    justifyContent: "center",
+    alignItems: "center",
+    opacity: 0.6
+  },
+  textCreateEvent: {
+    color: "#ffffff",
+    fontSize: 25,
+  }
+});
 function range(from, to) {
   return Array.from(Array(to), (_, i) => from + i);
 }
@@ -26,26 +53,26 @@ export const getHourTitle = (i: number) => {
   };
 };
 
-//type  _t_props = {|
-//   eventComponent: undefined
-//   dates: Array<Moment>,
-//   index: number,
-//   format24h: boolean,
-//   formatHeader: string,
-//   headerStyle: undefined
-//   renderEvent: ƒ renderEvent(event)
-//   eventTapped: ƒ eventTapped(event)
-//   events: Array<Object>,
-//   width: number,
-//   daysShownOnScreen: number,
-//   styles: Object,
-//   scrollToFirst: boolean,
-//   start: number,
-//   end: number,
-//   offset: number
-// |}
+type _t_props = {|
+  eventComponent: undefined,
+  dates: Array<any>,
+  index: number,
+  format24h: boolean,
+  formatHeader: string,
+  headerStyle: undefined,
+  renderEvent: Function,
+  eventTapped: Function,
+  events: Array<Object>,
+  width: number,
+  daysShownOnScreen: number,
+  styles: Object,
+  scrollToFirst: boolean,
+  start: number,
+  end: number,
+  offset: number
+|}
 
-export default class DayView extends React.PureComponent {
+export default class DayView extends React.PureComponent<_t_props> {
   constructor(props) {
     super(props);
     this.calendarHeight = (props.end - props.start) * props.offset;
@@ -58,7 +85,7 @@ export default class DayView extends React.PureComponent {
       props.dates,
       props.offset
     );
-   
+
     this.state = {
       _scrollY: this._getFirstEventPosition(packedEvents),
       packedEvents,
@@ -66,7 +93,7 @@ export default class DayView extends React.PureComponent {
   }
 
   _getFirstEventPosition = (packedEvents) => {
-    // get offset for first event 
+    // get offset for first event
     const offset = this.calendarHeight / (this.props.end - this.props.start);
     const initPosition =
     _.min(_.map(packedEvents, 'top')) - offset;
@@ -75,7 +102,9 @@ export default class DayView extends React.PureComponent {
   }
 
   componentDidUpdate(prev: _t_props) {
-    const { events, start, dates, offset, daysShownOnScreen } = prev;
+    const {
+      events, start, dates, offset, daysShownOnScreen
+    } = prev;
     const width = this.props.width - LEFT_MARGIN;
     if (events?.length !== this.props.events?.length &&
         dates !== this.props.dates
@@ -91,7 +120,7 @@ export default class DayView extends React.PureComponent {
 
       this.setState(() => ({
         _scrollY: this._getFirstEventPosition(packedEvents),
-        packedEvents: packedEvents,
+        packedEvents,
       }), () => {
         this.props.scrollToFirst && this.scrollToFirst();
       });
@@ -136,7 +165,7 @@ export default class DayView extends React.PureComponent {
     const timeNowMin = moment().minutes();
     return (
       <View
-        key={`timeNow`}
+        key="timeNow"
         style={[
           styles.lineNow,
           {
@@ -160,17 +189,17 @@ export default class DayView extends React.PureComponent {
       const { width, styles } = this.props;
       return [
         <Text
-        key={`timeLabel${i}`}
-        style={[styles.timeLabel, { top: (offset * index) - 6 }]}
-      >
-        {i !== start ? timeText.formatHour : ""}
-      </Text>,
-      <Text
-        key={`timeLabelAm${i}`}
-        style={[styles.timeLabel, { top: (offset * index) + 6 }]}
-      >
-        {i !== start ? timeText.formatAmPm : ""}
-      </Text>,
+          key={`timeLabel${i}`}
+          style={[styles.timeLabel, { top: (offset * index) - 6 }]}
+        >
+          {i !== start ? timeText.formatHour : ""}
+        </Text>,
+        <Text
+          key={`timeLabelAm${i}`}
+          style={[styles.timeLabel, { top: (offset * index) + 6 }]}
+        >
+          {i !== start ? timeText.formatAmPm : ""}
+        </Text>,
         i === start ? null : (
           <View
             key={`line${i}`}
@@ -191,11 +220,9 @@ export default class DayView extends React.PureComponent {
   _renderTimeLabels() {
     const { styles, start, end } = this.props;
     const offset = this.calendarHeight / (end - start);
-    return range(start, end).map((item, i) => {
-      return (
-        <View key={`line${i}`} style={[styles.line, { top: offset * i }]} />
-      );
-    });
+    return range(start, end).map((item, i) => (
+      <View key={`line${i}`} style={[styles.line, { top: offset * i }]} />
+    ));
   }
 
   _onEventTapped(event) {
@@ -205,11 +232,12 @@ export default class DayView extends React.PureComponent {
   _renderEvents() {
     const { styles, renderEvent } = this.props;
     const { packedEvents } = this.state;
-    let events = packedEvents.map((event, i) => {
+    const events = packedEvents.map((event, i) => {
       const style = {
         left: event.left,
         height: event.height,
-        width: event.width,
+        // TODO: remove width because this not shown correct for users.
+        // width: event.width,
         top: event.top,
       };
 
@@ -263,7 +291,9 @@ export default class DayView extends React.PureComponent {
   }
 
   render() {
-    const { styles } = this.props;
+    const { styles, offset, createEvent, setPositionY, positionY } = this.props;
+    let touchMovePositionX = 0;
+
     return (
       <ScrollView
         ref={ref => (this._scrollView = ref)}
@@ -271,10 +301,50 @@ export default class DayView extends React.PureComponent {
           styles.contentStyle,
           { width: this.props.width },
         ]}
+        onTouchStart={() => { touchMovePositionX = 0; }}
+        onTouchMove={() => { touchMovePositionX++; }}
+        onTouchEnd={(e) => {
+          // minimum threshold for position change
+          if (touchMovePositionX < MINIMUM_THRESHOLD) {
+            const { locationY } = e.nativeEvent;
+            // need determine current vertical position
+            //  for best experience need recalculate start position for block add event
+            // offset - height of start and end time.
+            let currentPositionY = Math.round((locationY - (offset / 2)) / offset) * offset;
+            // new value does not go abroad
+            currentPositionY = currentPositionY < this.calendarHeight - offset
+                ? currentPositionY
+                : this.calendarHeight - offset;
+            setPositionY(currentPositionY)
+          }
+        }}
       >
         {this._renderLines()}
         {this._renderEvents()}
         {this._renderRedLine()}
+        {
+            positionY > 0 && createEvent && (
+            <TouchableOpacity
+              style={[
+                componentStyles.positionCreateEvent,
+                {
+                  top: positionY + 5,
+                  width: this.props.width - (LEFT_MARGIN + 5)
+                 }
+              ]}
+              onPress={() => {
+                createEvent(positionY / offset);
+                setPositionY(-1)
+             }}
+            >
+              <Text
+                style={componentStyles.textCreateEvent}
+              >
+                +
+              </Text>
+            </TouchableOpacity>
+            )
+          }
       </ScrollView>
     );
   }

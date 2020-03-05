@@ -21,6 +21,7 @@ import DayView from './DayView';
 //   size?: number,
 //   formatHeader?: string,
 //   width: number,
+//   createEvent: Function,
 //   daysShownOnScreen: number,
 //   virtualizedListProps?: Object,
 //   events: Array<Object>,
@@ -47,6 +48,7 @@ export default class EventCalendar extends React.Component {
 
     this.styles = styleConstructor(props.styles, (end - start) * props.offset);
     this.state = {
+      positionY: -1,
       dates: this.populateDatesHeader(moment(this.props.initDate)),
       index: this.props.size,
     };
@@ -166,6 +168,9 @@ export default class EventCalendar extends React.Component {
         start={start}
         end={end}
         offset={offset}
+        createEvent={this.props.createEvent}
+        positionY={this.state.positionY}
+        setPositionY={(position: number) => this.setState(() => ({positionY: position}))}
       />
     );
   };
@@ -295,7 +300,7 @@ export default class EventCalendar extends React.Component {
               this.props.dateChanged(date.format('YYYY-MM-DD'));
             }
             let dates = this.populateDatesHeader(date);
-            this.setState(() => ({ index, dates }));
+            this.setState(() => ({ index, dates, positionY: -1 }));
           }}
           {...virtualizedListProps}
         />

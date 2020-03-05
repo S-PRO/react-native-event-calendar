@@ -56,7 +56,6 @@ function pack(columns, width, calculatedEvents, dayStart, offset) {
       let L = (i / colLength) * 46;
       // let W = width * colSpan / colLength - 10
       let W = width - 16;
-
       calculatedEvents.push(buildEvent(col[j], L, W, dayStart, offset));
     }
   }
