@@ -313,7 +313,7 @@ export default class DayView extends React.PureComponent<_t_props> {
             let currentPositionY = Math.round((locationY - (offset / 2)) / offset) * offset;
             // new value does not go abroad
             currentPositionY = currentPositionY < this.calendarHeight - offset
-                ? currentPositionY
+                ? currentPositionY + 5
                 : this.calendarHeight - offset;
             setPositionY(currentPositionY)
           }
@@ -332,7 +332,7 @@ export default class DayView extends React.PureComponent<_t_props> {
                   width: this.props.width - (LEFT_MARGIN + 5)
                  }
               ]}
-              onPress={() => {
+              onPressIn={() => {
                 createEvent(positionY / offset);
                 setPositionY(-1)
              }}
