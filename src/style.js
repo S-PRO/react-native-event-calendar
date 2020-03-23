@@ -2,7 +2,7 @@
 import { StyleSheet } from 'react-native';
 
 // const eventPaddingLeft = 4
-const leftMargin = 50 - 1;
+const leftMargin = 35 - 1;
 
 export default function styleConstructor(theme = {}, calendarHeight) {
   let style = {
@@ -25,11 +25,11 @@ export default function styleConstructor(theme = {}, calendarHeight) {
       backgroundColor: '#F5F5F6',
       flexDirection: 'row',
       justifyContent: 'space-between',
-      alignItems: 'stretch',
+      alignItems: 'center',
       ...theme.header,
     },
-    headerTextContainer: {
-      justifyContent: 'center',
+    leftMarginHeader: {
+      marginLeft: 0,
     },
     headerText: {
       fontSize: 16,
@@ -39,12 +39,6 @@ export default function styleConstructor(theme = {}, calendarHeight) {
       width: 15,
       height: 15,
       resizeMode: 'contain',
-    },
-    arrowButton: {
-      width: 50,
-      alignItems: 'center',
-      justifyContent: 'center',
-      ...theme.arrowButton,
     },
     event: {
       position: 'absolute',
@@ -99,12 +93,16 @@ export default function styleConstructor(theme = {}, calendarHeight) {
     },
     timeLabel: {
       position: 'absolute',
-      left: 15,
+      left: 3,
       color: 'rgb(170,170,170)',
-      fontSize: 10,
+      fontSize: 9,
       fontFamily: 'Helvetica Neue',
       fontWeight: '500',
       ...theme.timeLabel,
+    },
+    containerTextHeader: {
+      flex: 1,
+      ...theme.containerTextHeader,
     },
   };
   return StyleSheet.create(style);
