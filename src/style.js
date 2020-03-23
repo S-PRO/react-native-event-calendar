@@ -93,9 +93,9 @@ export default function styleConstructor(theme = {}, calendarHeight) {
     },
     timeLabel: {
       position: 'absolute',
-      left: 7,
+      left: 3,
       color: 'rgb(170,170,170)',
-      fontSize: 10,
+      fontSize: 9,
       fontFamily: 'Helvetica Neue',
       fontWeight: '500',
       ...theme.timeLabel,

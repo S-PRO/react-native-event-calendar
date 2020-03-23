@@ -5,12 +5,27 @@ import {
   View,
   Text,
   ScrollView,
-  TouchableOpacity
+  TouchableOpacity,
+  Platform
 } from 'react-native';
 import populateEvents from './Packer';
 import React from 'react';
 import moment from 'moment';
 import _ from 'lodash';
+
+let changeTimer = null;
+
+export const doSomethingsLater = (cb: () => Promise<void> | void, delay: number = 300) => {
+  if (changeTimer) {
+    clearTimeout(changeTimer);
+  }
+  changeTimer = setTimeout(() => {
+    if (cb) {
+      cb();
+    }
+    changeTimer = false;
+  }, delay);
+};
 
 const LEFT_MARGIN = 35 - 1;
 // const RIGHT_MARGIN = 10
@@ -21,7 +36,7 @@ const TEXT_LINE_HEIGHT = 17;
 // const EVENT_PADDING_LEFT = 4
 
 const CALENDAR_HEIGHT_CARD = 100;
-const MINIMUM_THRESHOLD = 20;
+const MINIMUM_THRESHOLD = Platform.select({ android: 20, ios: 3 });
 
 const componentStyles = StyleSheet.create({
   positionCreateEvent: {
@@ -31,10 +46,10 @@ const componentStyles = StyleSheet.create({
     borderColor: "#ccffff",
     borderRadius: 7,
     left: LEFT_MARGIN,
-    backgroundColor: "#00CDCE",
+    backgroundColor: "#2d50f3",
+    opacity: 0.35,
     justifyContent: "center",
     alignItems: "center",
-    opacity: 0.6
   },
   textCreateEvent: {
     color: "#ffffff",
@@ -48,8 +63,8 @@ function range(from, to) {
 export const getHourTitle = (i: number) => {
   const timeText = moment("00:00", "hh:mm").add(i, 'h');
   return {
-    formatHour: timeText && timeText.format("hh"),
-    formatAmPm: timeText && timeText.format("a")
+    formatHour: `${timeText && timeText.format("HH")}:00`,
+    formatAmPm: ""
   };
 };
 
@@ -92,6 +107,8 @@ export default class DayView extends React.PureComponent<_t_props> {
     };
   }
 
+  disableEventTouchPlusButton = false;
+
   _getFirstEventPosition = (packedEvents) => {
     // get offset for first event
     const offset = this.calendarHeight / (this.props.end - this.props.start);
@@ -106,8 +123,10 @@ export default class DayView extends React.PureComponent<_t_props> {
       events, start, dates, offset, daysShownOnScreen
     } = prev;
     const width = this.props.width - LEFT_MARGIN;
-    if (events?.length !== this.props.events?.length &&
-        dates !== this.props.dates
+    if (
+      ((events?.length !== this.props.events?.length)
+        || (JSON.stringify(events) !== JSON.stringify(this.props.events)))
+        && dates !== this.props.dates
     ) {
       const packedEvents = populateEvents(
         this.props.events,
@@ -190,7 +209,7 @@ export default class DayView extends React.PureComponent<_t_props> {
       return [
         <Text
           key={`timeLabel${i}`}
-          style={[styles.timeLabel, { top: (offset * index) - 6 }]}
+          style={[styles.timeLabel, { top: (offset * index) - 5 }]}
         >
           {i !== start ? timeText.formatHour : ""}
         </Text>,
@@ -253,6 +272,12 @@ export default class DayView extends React.PureComponent<_t_props> {
         <TouchableOpacity
           activeOpacity={0.5}
           onPress={() => this._onEventTapped(this.props.events[event.index])}
+          onPressIn={() => {
+            this.disableEventTouchPlusButton = true;
+            doSomethingsLater(() => {
+              this.disableEventTouchPlusButton = false;
+            }, 500);
+          }}
           key={i}
           style={[styles.event, style, event.color && eventColor]}
         >
@@ -305,7 +330,10 @@ export default class DayView extends React.PureComponent<_t_props> {
         onTouchMove={() => { touchMovePositionX++; }}
         onTouchEnd={(e) => {
           // minimum threshold for position change
-          if (touchMovePositionX < MINIMUM_THRESHOLD) {
+          if (
+            !this.disableEventTouchPlusButton &&
+            (touchMovePositionX < MINIMUM_THRESHOLD)
+          ) {
             const { locationY } = e.nativeEvent;
             // need determine current vertical position
             //  for best experience need recalculate start position for block add event
