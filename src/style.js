@@ -5,7 +5,7 @@ import { StyleSheet } from 'react-native';
 const leftMargin = 35 - 1;
 
 export default function styleConstructor(theme = {}, calendarHeight) {
-  let style = {
+  const style = {
     container: {
       flex: 1,
       backgroundColor: '#ffff',
