@@ -81,6 +81,7 @@ type _t_props = {|
   end: number,
   minThreshold: number,
   offset: number,
+  isDisplayLayers?: boolean,
 |};
 
 export default class DayView extends React.PureComponent<_t_props> {
@@ -88,14 +89,15 @@ export default class DayView extends React.PureComponent<_t_props> {
     super(props);
     this.calendarHeight = (props.end - props.start) * props.offset;
     const width = props.width - CONSTANTS.LEFT_MARGIN;
-    const packedEvents = populateEvents(
-      props.events,
-      width,
-      props.start,
-      props.daysShownOnScreen,
-      props.dates,
-      props.offset
-    );
+    const packedEvents = populateEvents({
+      events: props.events,
+      screenWidth: width,
+      dayStart: props.start,
+      daysShownOnScreen: props.daysShownOnScreen,
+      dates: props.dates,
+      offset: props.offset,
+      isDisplayLayers: props.isDisplayLayers,
+    });
 
     this.state = {
       _scrollY: this._getFirstEventPosition(packedEvents),
@@ -124,14 +126,15 @@ export default class DayView extends React.PureComponent<_t_props> {
       dates !== this.props.dates
     ) {
       this.updatePackedEvents(
-        populateEvents(
-          this.props.events,
-          width,
-          this.props.start,
-          this.props.daysShownOnScreen,
-          this.props.dates,
-          this.props.offset
-        )
+        populateEvents({
+          events: this.props.events,
+          screenWidth: width,
+          dayStart: this.props.start,
+          daysShownOnScreen: this.props.daysShownOnScreen,
+          dates: this.props.dates,
+          offset: this.props.offset,
+          isDisplayLayers: this.props.isDisplayLayers,
+        })
       );
     }
   }

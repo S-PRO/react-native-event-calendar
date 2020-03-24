@@ -1,5 +1,5 @@
 //
-// FIXME: add flow
+// @flow
 
 import moment from 'moment';
 import CONSTANTS from './constants';
@@ -30,7 +30,14 @@ function collision(a, b) {
   return a.end > b.start && a.start < b.end;
 }
 
-function pack(columns, width, calculatedEvents, dayStart, offset) {
+function pack(
+  columns,
+  width,
+  calculatedEvents,
+  dayStart,
+  offset,
+  isDisplayLayers
+) {
   const colLength = columns.length;
   for (let i = 0; i < colLength; i++) {
     const col = columns[i];
@@ -40,12 +47,13 @@ function pack(columns, width, calculatedEvents, dayStart, offset) {
 
       // const L = (i / colLength) * 46;
       const distanceBetweenBlocks = colLength < 3 ? 2 : 1;
+      let L = i ? width / (i + 1) + distanceBetweenBlocks : 0;
+      let W = colLength > 1 ? width / colLength - distanceBetweenBlocks : width;
 
-      const L = i ? width / (i + 1) + distanceBetweenBlocks : 0;
-      // let W = width * colSpan / colLength - 10
-      // + 160
-      const W =
-        colLength > 1 ? width / colLength - distanceBetweenBlocks : width;
+      if (isDisplayLayers) {
+        L = (i / colLength) * 46;
+        W = width - 16;
+      }
 
       calculatedEvents.push(buildEvent(col[j], L, W, dayStart, offset));
     }
@@ -59,9 +67,16 @@ function pack(columns, width, calculatedEvents, dayStart, offset) {
  * @param {*} screenWidth - screen width
  * @param {*} dayStart - dayStart - from which time to start building events
  * @param {*} offset - distance between the clocks on the event grid
+ * @param { boolean } isDisplayLayers - switching between views
  * @returns
  */
-function populateEvents(events, screenWidth, dayStart, offset) {
+function populateEvents(
+  events,
+  screenWidth,
+  dayStart,
+  offset,
+  isDisplayLayers
+) {
   let lastEnd;
   let columns;
   const calculatedEvents = [];
@@ -79,7 +94,14 @@ function populateEvents(events, screenWidth, dayStart, offset) {
   lastEnd = null;
   events.forEach(ev => {
     if (lastEnd !== null && ev.start >= lastEnd) {
-      pack(columns, screenWidth, calculatedEvents, dayStart, offset);
+      pack(
+        columns,
+        screenWidth,
+        calculatedEvents,
+        dayStart,
+        offset,
+        isDisplayLayers
+      );
       columns = [];
       lastEnd = null;
     }
@@ -106,7 +128,14 @@ function populateEvents(events, screenWidth, dayStart, offset) {
   });
 
   if (columns.length > 0) {
-    pack(columns, screenWidth, calculatedEvents, dayStart, offset);
+    pack(
+      columns,
+      screenWidth,
+      calculatedEvents,
+      dayStart,
+      offset,
+      isDisplayLayers
+    );
   }
 
   return calculatedEvents;
@@ -122,14 +151,17 @@ function populateEvents(events, screenWidth, dayStart, offset) {
  * @params dates
  * @params offset - distance between the clocks on the event grid
  */
-const populateMultipleEvents = (
-  events,
-  screenWidth,
-  dayStart,
-  daysShownOnScreen,
-  dates,
-  offset
-) => {
+const populateMultipleEvents = data => {
+  const {
+    events,
+    screenWidth,
+    dayStart,
+    daysShownOnScreen,
+    dates,
+    offset,
+    isDisplayLayers,
+  } = data;
+
   const preparedEvents = [];
   const gridEvents = {};
 
@@ -150,7 +182,8 @@ const populateMultipleEvents = (
       gridEvents[key],
       screenWidth - CONSTANTS.LEFT_MARGIN,
       dayStart,
-      offset
+      offset,
+      isDisplayLayers
     )
   );
 

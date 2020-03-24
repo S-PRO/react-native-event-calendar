@@ -42,6 +42,8 @@ type _t_props = {
   renderEvent: Function,
   eventTapped: Function,
   headerStyle?: ViewStyleProp,
+  isDisplayLayers?: boolaen,
+  minThreshold?: number,
 };
 type _t_state = {|
   dates: Array<Moment>,
@@ -157,6 +159,8 @@ export default class EventCalendar extends React.Component<_t_props, _t_state> {
       end = 24,
       daysShownOnScreen,
       offset,
+      isDisplayLayers,
+      minThreshold,
     } = this.props;
 
     const date = moment(initDate).add(index - this.props.size, 'days');
@@ -164,6 +168,8 @@ export default class EventCalendar extends React.Component<_t_props, _t_state> {
 
     return (
       <DayView
+        minThreshold={minThreshold}
+        isDisplayLayers={isDisplayLayers}
         eventComponent={this.props.eventComponent}
         dates={dates}
         index={index}
@@ -331,4 +337,5 @@ EventCalendar.defaultProps = {
   initDate: new Date(),
   formatHeader: DATE_FORMAT,
   offset: 100,
+  isDisplayLayers: false,
 };
