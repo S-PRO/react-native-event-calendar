@@ -46,9 +46,15 @@ function pack(
       // let L = i / colLength * width;
 
       // const L = (i / colLength) * 46;
-      const distanceBetweenBlocks = colLength < 3 ? 2 : 1;
-      let L = i ? width / (i + 1) + distanceBetweenBlocks : 0;
-      let W = colLength > 1 ? width / colLength - distanceBetweenBlocks : width;
+
+      const distanceBetweenBlocks = 5;
+      let W =
+        colLength > 1
+          ? width / colLength - distanceBetweenBlocks
+          : width - distanceBetweenBlocks;
+      let L = i
+        ? i * (W - distanceBetweenBlocks) + i * distanceBetweenBlocks * 2
+        : 0;
 
       if (isDisplayLayers) {
         L = (i / colLength) * 46;
