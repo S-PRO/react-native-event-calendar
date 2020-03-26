@@ -2,7 +2,6 @@
 // @flow
 
 import moment from 'moment';
-import CONSTANTS from './constants';
 
 const DATE_FORMAT_TIME = 'YYYY-MM-DD HH:mm:ss';
 const DATE_FORMAT = 'YYYY-MM-DD';
@@ -47,7 +46,7 @@ function pack(
 
       // const L = (i / colLength) * 46;
 
-      const distanceBetweenBlocks = 5;
+      const distanceBetweenBlocks = 2;
       let W =
         colLength > 1
           ? width / colLength - distanceBetweenBlocks
@@ -186,7 +185,7 @@ const populateMultipleEvents = data => {
   const gridEventsPopulated = Object.keys(gridEvents).map(key =>
     populateEvents(
       gridEvents[key],
-      screenWidth - CONSTANTS.LEFT_MARGIN,
+      screenWidth - 12,
       dayStart,
       offset,
       isDisplayLayers

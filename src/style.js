@@ -91,6 +91,12 @@ export default function styleConstructor(theme = {}, calendarHeight) {
       backgroundColor: 'red',
       ...theme.lineNow,
     },
+    lineNowRound: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      ...theme.lineNowRound,
+    },
     timeLabel: {
       position: 'absolute',
       left: 3,
