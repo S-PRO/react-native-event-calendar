@@ -82,6 +82,7 @@ type _t_props = {|
   minThreshold: number,
   offset: number,
   isDisplayLayers?: boolean,
+  contentOffset: { x: number, y: number },
 |};
 
 export default class DayView extends React.PureComponent<_t_props> {
@@ -334,11 +335,13 @@ export default class DayView extends React.PureComponent<_t_props> {
       setPositionY,
       positionY,
       minThreshold,
+      contentOffset,
     } = this.props;
     let touchMovePositionX = 0;
 
     return (
       <ScrollView
+        contentOffset={contentOffset}
         ref={ref => {
           this._scrollView = ref;
         }}

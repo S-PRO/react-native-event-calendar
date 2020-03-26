@@ -42,8 +42,9 @@ type _t_props = {
   renderEvent: Function,
   eventTapped: Function,
   headerStyle?: ViewStyleProp,
-  isDisplayLayers?: boolaen,
+  isDisplayLayers?: boolean,
   minThreshold?: number,
+  contentOffset: { x: number, y: number },
 };
 type _t_state = {|
   dates: Array<Moment>,
@@ -168,6 +169,7 @@ export default class EventCalendar extends React.Component<_t_props, _t_state> {
 
     return (
       <DayView
+        contentOffset={this.props.contentOffset}
         minThreshold={minThreshold}
         isDisplayLayers={isDisplayLayers}
         eventComponent={this.props.eventComponent}
