@@ -10,7 +10,7 @@ import {
 import React from 'react';
 import moment from 'moment';
 import _ from 'lodash';
-import populateEvents from './Packer';
+import populateMultipleEvents from './Packer';
 import CONSTANTS from './constants';
 
 let changeTimer = null;
@@ -90,7 +90,7 @@ export default class DayView extends React.PureComponent<_t_props> {
     super(props);
     this.calendarHeight = (props.end - props.start) * props.offset;
     const width = props.width - CONSTANTS.LEFT_MARGIN;
-    const packedEvents = populateEvents({
+    const packedEvents = populateMultipleEvents({
       events: props.events,
       screenWidth: width,
       dayStart: props.start,
@@ -127,7 +127,7 @@ export default class DayView extends React.PureComponent<_t_props> {
       dates !== this.props.dates
     ) {
       this.updatePackedEvents(
-        populateEvents({
+        populateMultipleEvents({
           events: this.props.events,
           screenWidth: width,
           dayStart: this.props.start,

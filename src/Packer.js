@@ -1,15 +1,53 @@
-//
 // @flow
-
 import moment from 'moment';
 
-const DATE_FORMAT_TIME = 'YYYY-MM-DD HH:mm:ss';
-const DATE_FORMAT = 'YYYY-MM-DD';
+// TYPES
+import type { Moment } from 'moment';
 
-function buildEvent(column, left, width, dayStart, offset) {
-  const startTime = moment(column.start);
+const DATE_FORMATS = {
+  SERVER_DATE_FORMAT: 'YYYY-MM-DD',
+  HHmm: 'HH:mm',
+  YYYY_MM_DD__H_M_S: 'YYYY-MM-DD HH:mm:ss',
+};
+
+export const setMoment = (value?: string): Moment => {
+  if (value) {
+    return moment(value);
+  }
+  return moment();
+};
+/**
+  used for parsing date before sending to server
+ */
+export const formatDateForServer = (date: Moment): ?string => {
+  if (date) {
+    return date.format(DATE_FORMATS.SERVER_DATE_FORMAT);
+  }
+  return null;
+};
+
+/**
+ * used for parsing time before show user
+ */
+export const formatEventDate = (
+  time: string,
+  dateFormat: string = DATE_FORMATS.HHmm
+) => moment(time, DATE_FORMATS.YYYY_MM_DD__H_M_S).format(dateFormat);
+
+type _t_packedEvent = {
+  ...Object,
+  left?: number,
+  top?: number,
+  height?: number,
+  width?: number,
+};
+
+const buildEvent = data => {
+  const { column, left, width, dayStart, offset } = data;
+  const columnCalculated: _t_packedEvent = { ...column };
+  const startTime = setMoment(column.start);
   const endTime = column.end
-    ? moment(column.end)
+    ? setMoment(column.end)
     : startTime.clone().add(1, 'hour');
   const dayStartTime = startTime
     .clone()
@@ -17,54 +55,67 @@ function buildEvent(column, left, width, dayStart, offset) {
     .minute(0);
   const diffHours = startTime.diff(dayStartTime, 'hours', true);
 
-  column.top = diffHours * offset;
-  column.height = endTime.diff(startTime, 'hours', true) * offset;
-  column.width = width;
-  column.left = left;
+  columnCalculated.top = diffHours * offset;
+  columnCalculated.height = endTime.diff(startTime, 'hours', true) * offset;
+  columnCalculated.width = width;
+  columnCalculated.left = left;
 
-  return column;
-}
+  return columnCalculated;
+};
 
-function collision(a, b) {
-  return a.end > b.start && a.start < b.end;
-}
+const collision = (a, b) => a.end > b.start && a.start < b.end;
 
-function pack(
-  columns,
-  width,
-  calculatedEvents,
-  dayStart,
-  offset,
-  isDisplayLayers
-) {
+const pack = data => {
+  const {
+    columns,
+    width,
+    calculatedEvents,
+    dayStart,
+    offset,
+    defaultLeft,
+    isDisplayLayers,
+  } = data;
   const colLength = columns.length;
+
   for (let i = 0; i < colLength; i++) {
     const col = columns[i];
     for (let j = 0; j < col.length; j++) {
-      // const colSpan = expand(col[j], i, columns);
-      // let L = i / colLength * width;
-
-      // const L = (i / colLength) * 46;
-
-      const distanceBetweenBlocks = 2;
+      const distanceBetweenBlocks = colLength > 3 ? 1 : 4;
+      // you need to divide the width by the number of collisions found colLength
+      // columns list of events that happen at the same time
+      // distanceBetweenBlocks - the distance between blocks.
       let W =
         colLength > 1
           ? width / colLength - distanceBetweenBlocks
           : width - distanceBetweenBlocks;
-      let L = i
-        ? i * (W - distanceBetweenBlocks) + i * distanceBetweenBlocks * 2
-        : 0;
+
+      // based on the width, this is the indent from the left edge depending on the event serial number.
+      // defaultLeft offset for each day.
+      let L =
+        defaultLeft +
+        (i
+          ? i * (W - distanceBetweenBlocks) + i * distanceBetweenBlocks * 2
+          : 0);
 
       if (isDisplayLayers) {
         L = (i / colLength) * 46;
         W = width - 16;
       }
 
-      calculatedEvents.push(buildEvent(col[j], L, W, dayStart, offset));
+      calculatedEvents.push(
+        buildEvent({
+          column: col[j],
+          left: L,
+          width: W,
+          dayStart,
+          offset,
+        })
+      );
     }
   }
-}
+};
 
+// sorted event conducts the layering of several events at the same time.
 /**
  * sorted all events, find colision and resolve this.
  *
@@ -75,18 +126,27 @@ function pack(
  * @param { boolean } isDisplayLayers - switching between views
  * @returns
  */
-function populateEvents(
-  events,
-  screenWidth,
-  dayStart,
-  offset,
-  isDisplayLayers
-) {
+export const populateEvents = (data: {
+  events: Array<Object>,
+  screenWidth: number,
+  dayStart: number,
+  defaultLeft: number,
+  offset: number,
+  isDisplayLayers: boolean,
+}) => {
+  const {
+    events,
+    screenWidth,
+    dayStart,
+    defaultLeft,
+    offset,
+    isDisplayLayers,
+  } = data;
   let lastEnd;
   let columns;
   const calculatedEvents = [];
-  events = events
-    .map((ev, index) => ({ ...ev, index }))
+  const sortedEvents = events
+    .map(ev => ({ ...ev }))
     .sort((a, b) => {
       if (a.start < b.start) return -1;
       if (a.start > b.start) return 1;
@@ -97,16 +157,18 @@ function populateEvents(
 
   columns = [];
   lastEnd = null;
-  events.forEach(ev => {
+
+  sortedEvents.forEach(ev => {
     if (lastEnd !== null && ev.start >= lastEnd) {
-      pack(
+      pack({
         columns,
-        screenWidth,
+        width: screenWidth,
         calculatedEvents,
         dayStart,
         offset,
-        isDisplayLayers
-      );
+        defaultLeft,
+        isDisplayLayers,
+      });
       columns = [];
       lastEnd = null;
     }
@@ -114,10 +176,8 @@ function populateEvents(
     let placed = false;
     for (let i = 0; i < columns.length; i++) {
       const col = columns[i];
-      // if there is a conflict
       if (!collision(col[col.length - 1], ev)) {
-        // TODO: rm not used
-        // col.push(ev);
+        col.push(ev);
         placed = true;
         break;
       }
@@ -133,18 +193,18 @@ function populateEvents(
   });
 
   if (columns.length > 0) {
-    pack(
+    pack({
       columns,
-      screenWidth,
+      width: screenWidth,
       calculatedEvents,
       dayStart,
       offset,
-      isDisplayLayers
-    );
+      defaultLeft,
+      isDisplayLayers,
+    });
   }
-
   return calculatedEvents;
-}
+};
 
 /**
  * Main Function count all events
@@ -156,12 +216,21 @@ function populateEvents(
  * @params dates
  * @params offset - distance between the clocks on the event grid
  */
-const populateMultipleEvents = data => {
+// events breaks by days change width and left margin for each event
+export const populateMultipleEvents = (data: {
+  events: Array<Object>,
+  screenWidth: number,
+  dayStart: number,
+  daysShownOnScreen: number,
+  dates: Moment[],
+  offset: number,
+  isDisplayLayers: boolean,
+}) => {
   const {
     events,
     screenWidth,
     dayStart,
-    daysShownOnScreen,
+    daysShownOnScreen = 1,
     dates,
     offset,
     isDisplayLayers,
@@ -171,33 +240,38 @@ const populateMultipleEvents = data => {
   const gridEvents = {};
 
   dates.forEach(date => {
-    gridEvents[date.format(DATE_FORMAT)] = [];
+    // $FlowFixMe
+    gridEvents[formatDateForServer(date)] = [];
   });
-  // We place all the events in the necessary columns, that is, by the day.
-  events.forEach(item => {
-    const key = moment(item.start, DATE_FORMAT_TIME).format(DATE_FORMAT);
+
+  events.forEach((item, index) => {
+    const key = formatEventDate(item.start, DATE_FORMATS.SERVER_DATE_FORMAT);
     if (gridEvents[key]) {
-      gridEvents[key].push(item);
+      gridEvents[key].push({
+        ...item,
+        index,
+      });
     }
   });
 
-  // go through the days and watch all the events for this day.
-  const gridEventsPopulated = Object.keys(gridEvents).map(key =>
-    populateEvents(
-      gridEvents[key],
-      screenWidth - 12,
+  const widthOneItem = screenWidth / daysShownOnScreen;
+  const gridEventsPopulated = Object.keys(gridEvents).map((dayKey, index) =>
+    populateEvents({
+      events: gridEvents[dayKey],
+      screenWidth: widthOneItem,
       dayStart,
+      defaultLeft: widthOneItem * index,
       offset,
-      isDisplayLayers
-    )
+      isDisplayLayers,
+    })
   );
 
-  gridEventsPopulated.forEach((col, index) => {
+  gridEventsPopulated.forEach(col => {
     col.forEach(event => {
       preparedEvents.push({
         ...event,
-        width: event.width / daysShownOnScreen,
-        left: (event.width / daysShownOnScreen) * index + event.left,
+        width: event.width,
+        left: event.left,
       });
     });
   });
