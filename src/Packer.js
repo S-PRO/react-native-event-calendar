@@ -253,8 +253,8 @@ export const populateMultipleEvents = (data: {
       });
     }
   });
-
-  const widthOneItem = screenWidth / daysShownOnScreen;
+  const rightMargin = daysShownOnScreen > 1 ? 0 : 11;
+  const widthOneItem = (screenWidth - rightMargin) / daysShownOnScreen;
   const gridEventsPopulated = Object.keys(gridEvents).map((dayKey, index) =>
     populateEvents({
       events: gridEvents[dayKey],
