@@ -36,6 +36,7 @@ type _t_props = {
   styles?: Object,
   eventComponent?: React.Node,
   onRef: Function,
+  onRefScrollView: Function,
   format24h: boolean,
   headerComponent?: React.Node,
   dateChanged: (date: string) => void,
@@ -45,6 +46,7 @@ type _t_props = {
   isDisplayLayers?: boolean,
   minThreshold?: number,
   contentOffset: { x: number, y: number },
+  handleEndDrag: Function,
 };
 type _t_state = {|
   dates: Array<Moment>,
@@ -162,6 +164,8 @@ export default class EventCalendar extends React.Component<_t_props, _t_state> {
       offset,
       isDisplayLayers,
       minThreshold,
+      handleEndDrag,
+      onRefScrollView,
     } = this.props;
 
     const date = moment(initDate).add(index - this.props.size, 'days');
@@ -169,6 +173,8 @@ export default class EventCalendar extends React.Component<_t_props, _t_state> {
 
     return (
       <DayView
+        handleEndDrag={handleEndDrag}
+        onRefScrollView={onRefScrollView}
         contentOffset={this.props.contentOffset}
         minThreshold={minThreshold}
         isDisplayLayers={isDisplayLayers}

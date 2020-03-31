@@ -32,7 +32,7 @@ export const doSomethingsLater = (
 
 const componentStyles = StyleSheet.create({
   positionCreateEvent: {
-    height: CONSTANTS.CALENDAR_HEIGHT_CARD - 10,
+    height: CONSTANTS.CALENDAR_HEIGHT_CARD - 5,
     borderWidth: 3,
     borderStyle: 'solid',
     borderColor: '#ccffff',
@@ -62,6 +62,7 @@ export const getHourTitle = (i: number) => {
 
 type _t_props = {|
   // eventComponent: undefined,
+  onRefScrollView: Function,
   dates: Array<any>,
   // index: number,
   format24h: boolean,
@@ -83,6 +84,7 @@ type _t_props = {|
   offset: number,
   isDisplayLayers?: boolean,
   contentOffset: { x: number, y: number },
+  handleEndDrag: Function,
 |};
 
 export default class DayView extends React.PureComponent<_t_props> {
@@ -336,6 +338,8 @@ export default class DayView extends React.PureComponent<_t_props> {
       positionY,
       minThreshold,
       contentOffset,
+      onRefScrollView,
+      handleEndDrag,
     } = this.props;
     let touchMovePositionX = 0;
 
@@ -344,6 +348,14 @@ export default class DayView extends React.PureComponent<_t_props> {
         contentOffset={contentOffset}
         ref={ref => {
           this._scrollView = ref;
+          if (onRefScrollView) {
+            onRefScrollView(ref);
+          }
+        }}
+        onScrollEndDrag={e => {
+          if (handleEndDrag) {
+            handleEndDrag(e);
+          }
         }}
         contentContainerStyle={[
           styles.contentStyle,
@@ -384,7 +396,7 @@ export default class DayView extends React.PureComponent<_t_props> {
             style={[
               componentStyles.positionCreateEvent,
               {
-                top: positionY + 5,
+                top: positionY - 2,
                 width: this.props.width - (CONSTANTS.LEFT_MARGIN + 5),
               },
             ]}
