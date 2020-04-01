@@ -65,6 +65,7 @@ export default class EventCalendar extends React.Component<_t_props, _t_state> {
 
     this.styles = styleConstructor(props.styles, (end - start) * props.offset);
     this.state = {
+      isWasVerticalScroll: false,
       positionY: -1,
       dates: this.populateDatesHeader(moment(this.props.initDate)),
       index: this.props.size,
@@ -105,6 +106,13 @@ export default class EventCalendar extends React.Component<_t_props, _t_state> {
       this._goToDate(this.props.initDate);
     }
   }
+
+  resetCurrentCreateButton = () => {
+    this.setState(() => ({
+      positionY: -1,
+      isWasVerticalScroll: true,
+    }));
+  };
 
   setDatesWithIndex = (dates: Array<Moment>, index: number) => {
     this.setState(prevState => ({
@@ -199,6 +207,7 @@ export default class EventCalendar extends React.Component<_t_props, _t_state> {
         setPositionY={(position: number) =>
           this.setState(() => ({ positionY: position }))
         }
+        isWasVerticalScroll={this.state.isWasVerticalScroll}
       />
     );
   };
@@ -320,6 +329,7 @@ export default class EventCalendar extends React.Component<_t_props, _t_state> {
           pagingEnabled
           renderItem={this._renderItem}
           style={{ width }}
+          onScrollBeginDrag={this.resetCurrentCreateButton}
           onMomentumScrollEnd={event => {
             const index = parseInt(
               event.nativeEvent.contentOffset.x / width,
@@ -330,7 +340,12 @@ export default class EventCalendar extends React.Component<_t_props, _t_state> {
               this.props.dateChanged(date.format('YYYY-MM-DD'));
             }
             const dates = this.populateDatesHeader(date);
-            this.setState(() => ({ index, dates, positionY: -1 }));
+            this.setState(() => ({
+              index,
+              dates,
+              positionY: -1,
+              isWasVerticalScroll: false,
+            }));
           }}
           {...virtualizedListProps}
         />

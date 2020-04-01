@@ -85,6 +85,7 @@ type _t_props = {|
   isDisplayLayers?: boolean,
   contentOffset: { x: number, y: number },
   handleEndDrag: Function,
+  isWasVerticalScroll: boolean,
 |};
 
 export default class DayView extends React.PureComponent<_t_props> {
@@ -340,6 +341,7 @@ export default class DayView extends React.PureComponent<_t_props> {
       contentOffset,
       onRefScrollView,
       handleEndDrag,
+      isWasVerticalScroll,
     } = this.props;
     let touchMovePositionX = 0;
 
@@ -370,6 +372,7 @@ export default class DayView extends React.PureComponent<_t_props> {
         onTouchEnd={e => {
           // minimum threshold for position change
           if (
+            !isWasVerticalScroll &&
             !this.disableEventTouchPlusButton &&
             touchMovePositionX < (minThreshold || CONSTANTS.MINIMUM_THRESHOLD)
           ) {
@@ -400,7 +403,7 @@ export default class DayView extends React.PureComponent<_t_props> {
                 width: this.props.width - (CONSTANTS.LEFT_MARGIN + 5),
               },
             ]}
-            onPressIn={() => {
+            onPress={() => {
               createEvent(positionY / offset);
               setPositionY(-1);
             }}
